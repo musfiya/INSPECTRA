@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INSPECTRA — AI Visual Inspection Platform</title>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- =========================================================
+         0. FULLSCREEN STANDALONE 3-SECOND SPLASH SCREEN
+         ========================================================= -->
+    <div id="splash-screen" class="splash-screen">
+        <!-- Ambient subtle background grid & optical beam -->
+        <div class="splash-grid-backdrop"></div>
+        <div class="splash-ambient-glow"></div>
+        <div class="splash-scan-line"></div>
+
+        <!-- Splash Content -->
+        <div class="splash-content">
+            <!-- Reticle / Emblem -->
+            <div class="splash-emblem">
+                <div class="splash-reticle-ring ring-outer"></div>
+                <div class="splash-reticle-ring ring-inner"></div>
+                <i class="fa-solid fa-crosshairs splash-crosshair"></i>
+                <i class="fa-solid fa-eye splash-eye"></i>
+            </div>
+
+            <!-- INSPECTRA Wordmark with Light Sweep -->
+            <div class="splash-title-wrapper">
+                <h1 class="splash-title">INSPECTRA</h1>
+                <div class="splash-title-glimmer"></div>
+            </div>
+
+            <!-- Subtitle -->
+            <p class="splash-subtitle">AI VISUAL INSPECTION PLATFORM</p>
+
+            <!-- Domain Badges -->
+            <div class="splash-domains">
+                <span><i class="fa-solid fa-microchip"></i> PCB / ELECTRONICS</span>
+                <span class="domain-sep">&bull;</span>
+                <span><i class="fa-solid fa-car"></i> AUTOMOTIVE</span>
+                <span class="domain-sep">&bull;</span>
+                <span><i class="fa-solid fa-circle-nodes"></i> WAFER SEMICONDUCTOR</span>
+            </div>
+
+            <!-- 3-Second Loading Track & Status -->
+            <div class="splash-progress-container">
+                <div class="splash-progress-track">
+                    <div class="splash-progress-bar"></div>
+                </div>
+                <div class="splash-status-text">
+                    <span class="splash-pulse-dot"></span>
+                    <span id="splash-status-label">INITIALIZING NEURAL VISION PIPELINE...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         1. SIGN IN & REGISTRATION AUTHENTICATION PORTAL
+         (Revealed smoothly ONLY after splash screen completes)
+         ========================================================= -->
+    <div id="intro-portal" class="intro-portal hidden">
+        <!-- Interactive Computer Vision Background Canvas -->
+        <canvas id="intro-canvas" class="intro-canvas"></canvas>
+
+        <!-- Dynamic Optical Scan Line -->
+        <div class="intro-scanner-line"></div>
+
+        <!-- Telemetry HUD Overlays -->
+        <div class="intro-hud-top-left">
+            <span class="hud-tag"><span class="hud-blink"></span> SYS: OPTICAL_CV_ONLINE</span>
+            <span class="hud-coord" id="hud-coords">X: 524.12 &bull; Y: 891.40 &bull; FPS: 60</span>
+        </div>
+        <div class="intro-hud-top-right">
+            <span class="hud-tag">AI CORE: v1.0.4-PROD</span>
+            <span class="hud-mode">MULTI-DOMAIN DETECTOR</span>
+        </div>
+        <div class="intro-hud-bottom-left">
+            <span class="hud-metric">PCB YOLOv8n &bull; AUTOMOTIVE YOLOv8n &bull; WAFER ResNet18</span>
+        </div>
+
+        <!-- Central Auth Console Container -->
+        <div class="intro-content-container">
+            
+            <!-- Glassmorphism Auth Console -->
+            <div class="auth-console" id="auth-console">
+                <!-- Console Top Brand Header -->
+                <div class="auth-console-brand">
+                    <div class="auth-brand-badge">
+                        <i class="fa-solid fa-crosshairs brand-crosshair-mini"></i>
+                        <i class="fa-solid fa-eye brand-eye-mini"></i>
+                    </div>
+                    <div class="auth-brand-text">
+                        <h2 class="auth-brand-name">INSPECTRA</h2>
+                        <span class="auth-brand-sub">AI VISUAL INSPECTION PLATFORM</span>
+                    </div>
+                </div>
+
+                <!-- Console Header Status -->
+                <div class="console-header">
+                    <div class="console-dots">
+                        <span class="dot red"></span>
+                        <span class="dot amber"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <span class="console-label">SECURE OPERATOR TERMINAL</span>
+                </div>
+
+                <!-- Tabs -->
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">
+                        <i class="fa-solid fa-right-to-bracket"></i> Sign In
+                    </button>
+                    <button type="button" class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">
+                        <i class="fa-solid fa-user-plus"></i> Register
+                    </button>
+                </div>
+
+                <!-- Notification Box -->
+                <div id="auth-alert" class="auth-alert hidden"></div>
+
+                <!-- LOGIN FORM -->
+                <form id="login-form" class="auth-form">
+                    <div class="input-group">
+                        <label for="login-email"><i class="fa-regular fa-envelope"></i> Operator Email</label>
+                        <input type="email" id="login-email" placeholder="admin@inspectra.ai" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label for="login-password"><i class="fa-solid fa-lock"></i> Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="login-password" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('login-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="btn-login-submit">
+                            <i class="fa-solid fa-shield-halved"></i> Authenticate & Enter Workstation
+                        </button>
+                        <button type="button" class="btn-demo" id="btn-demo-fill" onclick="fillDemoCredentials()">
+                            <i class="fa-solid fa-bolt"></i> Auto-fill Demo Account
+                        </button>
+                    </div>
+                </form>
+
+                <!-- REGISTER FORM -->
+                <form id="register-form" class="auth-form hidden">
+                    <div class="input-group">
+                        <label for="register-name"><i class="fa-regular fa-user"></i> Full Name / Title</label>
+                        <input type="text" id="register-name" placeholder="Lead QA Inspector" required autocomplete="name">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-email"><i class="fa-regular fa-envelope"></i> Email Address</label>
+                        <input type="email" id="register-email" placeholder="operator@facility.com" required autocomplete="email">
+                    </div>
+                    <div class="input-group">
+                        <label for="register-password"><i class="fa-solid fa-lock"></i> Create Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="register-password" placeholder="••••••••" required autocomplete="new-password">
+                            <button type="button" class="toggle-password" onclick="togglePasswordVisibility('register-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="auth-actions">
+                        <button type="submit" class="btn-primary auth-submit" id="btn-register-submit">
+                            <i class="fa-solid fa-id-card"></i> Create Operator Profile
+                        </button>
+                    </div>
+                </form>
+
+                <div class="console-footer">
+                    <span><i class="fa-solid fa-circle-check text-success"></i> FASTAPI GATEWAY 127.0.0.1:8000</span>
+                    <span>256-BIT ENCRYPTION</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         2. MAIN INSPECTRA APPLICATION WORKSPACE
+         ========================================================= -->
+    <div id="app-workspace" class="app-workspace hidden">
+
+        <!-- ================= FIXED SIDEBAR ================= -->
+        <aside class="sidebar" id="sidebar">
+            
+            <!-- Sidebar Header / Branding -->
+            <div class="sidebar-brand">
+                <div class="brand-icon-box">
+                    <i class="fa-solid fa-crosshairs reticle-cross"></i>
+                    <i class="fa-solid fa-eye brand-eye"></i>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">INSPECTRA</span>
+                    <span class="brand-role">AI VISUAL INSPECTOR</span>
+                </div>
+            </div>
+
+            <!-- Main Navigation Links -->
+            <nav class="sidebar-nav">
+                <div class="nav-group-label">NAVIGATION</div>
+
+                <a href="javascript:void(0)" class="nav-item" data-nav="dashboard" onclick="navigateTo('dashboard')">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-item active" data-nav="inspection" onclick="navigateTo('inspection')">
+                    <i class="fa-solid fa-microscope"></i>
+                    <span>Inspection</span>
+                    <span class="nav-pill">Active</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-item" data-nav="history" onclick="navigateTo('history')">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>History</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-item" data-nav="analytics" onclick="navigateTo('analytics')">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Analytics</span>
+                </a>
+
+                <div class="nav-group-label">INTELLIGENCE</div>
+
+                <a href="javascript:void(0)" class="nav-item" data-nav="performance" onclick="navigateTo('performance')">
+                    <i class="fa-solid fa-brain"></i>
+                    <span>Model Performance</span>
+                </a>
+
+                <a href="javascript:void(0)" class="nav-item" data-nav="settings" onclick="navigateTo('settings')">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <!-- Domain Quick Selector in Sidebar -->
+            <div class="sidebar-domain-section">
+                <span class="domain-section-title">SELECT DOMAIN</span>
+                <div class="domain-radio-group">
+                    
+                    <label class="domain-radio-card active" data-domain="PCB / Electronics" onclick="setDomain('PCB / Electronics')">
+                        <input type="radio" name="domain-choice" value="PCB / Electronics" checked>
+                        <span class="radio-indicator"></span>
+                        <div class="domain-card-content">
+                            <i class="fa-solid fa-microchip domain-icon"></i>
+                            <div class="domain-details">
+                                <span class="domain-title">PCB / Electronics</span>
+                                <span class="domain-spec">YOLOv8n &bull; 6 Classes</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="domain-radio-card" data-domain="Automotive" onclick="setDomain('Automotive')">
+                        <input type="radio" name="domain-choice" value="Automotive">
+                        <span class="radio-indicator"></span>
+                        <div class="domain-card-content">
+                            <i class="fa-solid fa-car domain-icon"></i>
+                            <div class="domain-details">
+                                <span class="domain-title">Automotive Parts</span>
+                                <span class="domain-spec">YOLOv8n &bull; 6 Classes</span>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="domain-radio-card" data-domain="Semiconductor / Wafer" onclick="setDomain('Semiconductor / Wafer')">
+                        <input type="radio" name="domain-choice" value="Semiconductor / Wafer">
+                        <span class="radio-indicator"></span>
+                        <div class="domain-card-content">
+                            <i class="fa-solid fa-circle-nodes domain-icon"></i>
+                            <div class="domain-details">
+                                <span class="domain-title">Semiconductor / Wafer</span>
+                                <span class="domain-spec">ResNet18 + Grad-CAM</span>
+                            </div>
+                        </div>
+                    </label>
+
+                </div>
+            </div>
+
+            <!-- Sidebar Bottom System Status -->
+            <div class="sidebar-footer">
+                <div class="system-status-pill">
+                    <span class="pulse-green"></span>
+                    <div class="status-info">
+                        <strong class="status-title">System Status</strong>
+                        <span class="status-desc">All systems operational</span>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+
+        <!-- ================= MAIN WORKSPACE CONTENT ================= -->
+        <main class="main-body">
+
+            <!-- Top Header Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h2 class="platform-title" id="page-title">AI Visual Inspection Platform</h2>
+                    <p class="platform-subtitle" id="page-subtitle">Multi-Domain Defect Detection & Quality Assessment</p>
+                </div>
+
+                <div class="topbar-right">
+                    <!-- Export PDF Report Button -->
+                    <button type="button" class="btn-secondary" id="btn-export-pdf" onclick="openReportModal()">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>Export PDF Report</span>
+                    </button>
+
+                    <!-- New Inspection CTA -->
+                    <button type="button" class="btn-primary" id="btn-new-inspection-top" onclick="startNewInspection()">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>New Inspection</span>
+                    </button>
+
+                    <!-- User Profile Dropdown -->
+                    <div class="profile-menu-container">
+                        <button type="button" class="profile-pill" id="profile-pill-btn" onclick="toggleProfileDropdown()">
+                            <div class="avatar-circle" id="user-avatar">A</div>
+                            <span class="profile-name" id="user-display-name">Admin</span>
+                            <i class="fa-solid fa-chevron-down chevron-icon"></i>
+                        </button>
+                        <div class="profile-dropdown hidden" id="profile-dropdown-menu">
+                            <div class="dropdown-header">
+                                <strong id="dropdown-user-name">Administrator</strong>
+                                <span id="dropdown-user-email">admin@inspectra.ai</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="javascript:void(0)" class="dropdown-item" onclick="navigateTo('settings'); toggleProfileDropdown();">
+                                <i class="fa-solid fa-sliders"></i> Settings & API
+                            </a>
+                            <a href="javascript:void(0)" class="dropdown-item" onclick="navigateTo('performance'); toggleProfileDropdown();">
+                                <i class="fa-solid fa-brain"></i> Model Info
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <a href="javascript:void(0)" class="dropdown-item text-danger" onclick="logout()">
+                                <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Views Container -->
+            <div class="views-viewport">
+
+                <!-- =========================================================
+                     VIEW 1: INSPECTION WORKSTATION (MATCHING REFERENCE IMAGE 1)
+                     ========================================================= -->
+                <section class="view-panel active" id="view-inspection">
+
+                    <!-- Top Inspection Controls Row -->
+                    <div class="inspection-top-row">
+
+                        <!-- Upload Inspection Image Card -->
+                        <div class="control-card upload-control-card">
+                            <div class="card-header-simple">
+                                <span class="card-label">Upload Inspection Image</span>
+                                <span class="card-hint">Supports: JPG, PNG, BMP, TIFF, AVIF (Max 10MB)</span>
+                            </div>
+
+                            <!-- Empty Upload Dropzone -->
+                            <div class="upload-dropzone" id="upload-dropzone">
+                                <input type="file" id="inspection-file-input" accept="image/*,.pdf" hidden>
+                                <div class="dropzone-content" onclick="document.getElementById('inspection-file-input').click()">
+                                    <div class="dropzone-icon">
+                                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    </div>
+                                    <div class="dropzone-text">
+                                        <strong>Click to browse or drag & drop specimen image</strong>
+                                        <span>High-resolution optical capture recommended</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selected File Badge (Matching Reference UI) -->
+                            <div class="selected-file-badge hidden" id="selected-file-badge">
+                                <img id="selected-file-thumbnail" class="file-thumb" src="" alt="Thumbnail">
+                                <div class="file-meta">
+                                    <strong class="file-name" id="badge-file-name">specimen_capture.jpg</strong>
+                                    <span class="file-dimensions" id="badge-file-info">1920 x 1080 px &bull; 2.34 MB</span>
+                                </div>
+                                <div class="file-badge-actions">
+                                    <span class="status-check-circle" title="File Verified">
+                                        <i class="fa-solid fa-check"></i>
+                                    </span>
+                                    <button type="button" class="btn-icon-danger" title="Remove File" onclick="clearSelectedFile()">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Inspection Settings Card -->
+                        <div class="control-card settings-control-card">
+                            <div class="card-header-simple">
+                                <span class="card-label">Inspection Settings</span>
+                                <span class="card-hint">Hardware & Optical Calibration</span>
+                            </div>
+                            <div class="settings-grid">
+                                <div class="setting-item">
+                                    <label for="setting-camera">Camera Type</label>
+                                    <select id="setting-camera" class="custom-select">
+                                        <option value="Top View">Top View (Orthogonal)</option>
+                                        <option value="Side Angle">Side Angle (45&deg; Oblique)</option>
+                                        <option value="Micro-lens">Micro-lens (100x Optical)</option>
+                                        <option value="Optical 4K">Optical 4K Industrial</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label for="setting-lighting">Lighting</label>
+                                    <select id="setting-lighting" class="custom-select">
+                                        <option value="Standard">Standard LED</option>
+                                        <option value="Diffused">Diffused Dome</option>
+                                        <option value="High-Contrast">High-Contrast Darkfield</option>
+                                        <option value="Coaxial">Coaxial Telecentric</option>
+                                    </select>
+                                </div>
+                                <div class="setting-item">
+                                    <label for="setting-sensitivity">Sensitivity</label>
+                                    <select id="setting-sensitivity" class="custom-select">
+                                        <option value="Low">Low (Major defects only)</option>
+                                        <option value="Medium" selected>Medium (Standard Industrial)</option>
+                                        <option value="High">High (Strict Cleanroom)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="settings-action-row">
+                                <button type="button" class="btn-primary-glow" id="btn-run-inspection" onclick="executeInspection()" disabled>
+                                    <i class="fa-solid fa-bolt"></i>
+                                    <span>Run AI Inspection</span>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Workstation Scanning / Progress Overlay -->
+                    <div class="scanning-overlay hidden" id="scanning-overlay">
+                        <div class="scanning-hud">
+                            <div class="scanning-reticle">
+                                <i class="fa-solid fa-crosshairs fa-spin"></i>
+                            </div>
+                            <div class="scanning-text">
+                                <h3 id="scanning-phase-title">Running AI Neural Inference...</h3>
+                                <p id="scanning-phase-desc">Feeding tensor through unified vision pipeline...</p>
+                            </div>
+                            <div class="scanning-progress-track">
+                                <div class="scanning-progress-bar" id="scanning-progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Workstation Main Grid: Dual Visual Analysis & Summary -->
+                    <div class="workstation-grid" id="workstation-grid">
+
+                        <!-- LEFT COLUMN: Visual Analysis -->
+                        <div class="workstation-left-col">
+                            
+                            <!-- Card 1: Dual Image Inspection Result -->
+                            <div class="panel visual-panel">
+                                <div class="panel-header">
+                                    <div class="header-titles">
+                                        <span class="panel-eyebrow">INSPECTION RESULT</span>
+                                        <h3 class="panel-title">Computer Vision Defect Mapping</h3>
+                                    </div>
+                                    <div class="panel-controls">
+                                        <label class="toggle-switch-label">
+                                            <span>Show Mask / Boxes</span>
+                                            <input type="checkbox" id="toggle-mask" checked onchange="toggleMaskVisibility()">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="dual-viewport-container">
+                                    <!-- Original Specimen -->
+                                    <div class="viewport-box">
+                                        <div class="viewport-tag"><i class="fa-regular fa-image"></i> Original Image</div>
+                                        <div class="image-stage" id="stage-original">
+                                            <div class="empty-stage-placeholder" id="placeholder-original">
+                                                <i class="fa-solid fa-camera"></i>
+                                                <span>Awaiting Image Upload</span>
+                                            </div>
+                                            <img id="img-original" class="inspection-img hidden" alt="Original Specimen">
+                                        </div>
+                                    </div>
+
+                                    <!-- Detected Defects (AI Output) -->
+                                    <div class="viewport-box">
+                                        <div class="viewport-tag"><i class="fa-solid fa-bullseye"></i> Detected Defects (AI Output)</div>
+                                        <div class="image-stage" id="stage-detected">
+                                            <div class="empty-stage-placeholder" id="placeholder-detected">
+                                                <i class="fa-solid fa-microchip"></i>
+                                                <span>AI Inference Output will render here</span>
+                                            </div>
+                                            <img id="img-detected" class="inspection-img hidden" alt="Detected Output">
+                                            <canvas id="canvas-bounding-boxes" class="canvas-overlay hidden"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Defect Mask / Heatmap View -->
+                            <div class="panel heatmap-panel">
+                                <div class="panel-header">
+                                    <div class="header-titles">
+                                        <span class="panel-eyebrow">SPATIAL ACTIVATION</span>
+                                        <h3 class="panel-title">Defect Mask / Heatmap</h3>
+                                    </div>
+                                    <div class="heatmap-legend">
+                                        <span class="legend-label">Heatmap Intensity</span>
+                                        <div class="heatmap-color-bar"></div>
+                                        <div class="legend-scale">
+                                            <span>Low</span>
+                                            <span>High</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="heatmap-stage" id="heatmap-stage">
+                                    <div class="empty-stage-placeholder" id="placeholder-heatmap">
+                                        <i class="fa-solid fa-fire"></i>
+                                        <span>Spatial Grad-CAM / Defect Density activates upon model execution</span>
+                                    </div>
+                                    <canvas id="canvas-heatmap" class="heatmap-canvas hidden"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Explainability & Historical Comparison -->
+                            <div class="panel explainability-panel">
+                                <div class="panel-header">
+                                    <div class="header-titles">
+                                        <span class="panel-eyebrow">MODEL EXPLAINABILITY</span>
+                                        <h3 class="panel-title">Decision Rationale & Historical Patterns</h3>
+                                    </div>
+                                </div>
+                                <div class="explainability-grid">
+                                    
+                                    <!-- Why this result? -->
+                                    <div class="explain-rationale-box">
+                                        <h4 class="box-subtitle">Why this result?</h4>
+                                        <ul class="rationale-list" id="rationale-list">
+                                            <li><i class="fa-solid fa-circle-check text-success"></i> Model loaded and standing by for inspection.</li>
+                                            <li><i class="fa-solid fa-circle-check text-success"></i> Supported models include YOLOv8n and ResNet18 spatial feature extractors.</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Similar Historical Samples Donut -->
+                                    <div class="historical-samples-box">
+                                        <h4 class="box-subtitle">Similar Historical Samples</h4>
+                                        <div class="historical-donut-content">
+                                            <div class="donut-chart-wrapper">
+                                                <canvas id="canvas-historical-donut" width="100" height="100"></canvas>
+                                                <span class="donut-center-num" id="donut-total-count">0</span>
+                                            </div>
+                                            <div class="donut-legend">
+                                                <div class="legend-item">
+                                                    <span class="legend-dot red"></span>
+                                                    <span>Failed: <strong id="hist-failed-val">0 (0%)</strong></span>
+                                                </div>
+                                                <div class="legend-item">
+                                                    <span class="legend-dot green"></span>
+                                                    <span>Passed: <strong id="hist-passed-val">0 (0%)</strong></span>
+                                                </div>
+                                                <span class="total-note">Total Similar Evaluated</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- RIGHT COLUMN: Inspection Summary & Derived Analytics -->
+                        <div class="workstation-right-col">
+
+                            <div class="panel summary-panel">
+                                <div class="panel-header">
+                                    <div class="header-titles">
+                                        <span class="panel-eyebrow">QUALITY AUDIT</span>
+                                        <h3 class="panel-title">INSPECTION SUMMARY</h3>
+                                    </div>
+                                </div>
+
+                                <!-- Status & Confidence Banner -->
+                                <div class="summary-top-banner">
+                                    <div class="overall-status-box">
+                                        <span class="metric-label">Overall Status</span>
+                                        <div class="status-pill-badge neutral" id="badge-overall-status">
+                                            <i class="fa-solid fa-clock"></i>
+                                            <span id="text-overall-status">STANDBY</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="model-confidence-box">
+                                        <div class="confidence-header">
+                                            <span class="metric-label">Model Confidence</span>
+                                            <strong class="confidence-number" id="val-model-confidence">0.0%</strong>
+                                        </div>
+                                        <div class="confidence-bar-track">
+                                            <div class="confidence-bar-fill" id="bar-model-confidence" style="width: 0%;"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4-Metric Tiles Grid -->
+                                <div class="metrics-quad-grid">
+                                    <div class="metric-tile">
+                                        <span class="tile-label">Defect(s) Found</span>
+                                        <strong class="tile-val" id="tile-defect-count">0</strong>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="tile-label">Total Defect Area</span>
+                                        <strong class="tile-val" id="tile-defect-area">0.00%</strong>
+                                    </div>
+                                    <div class="metric-tile">
+                                        <span class="tile-label">Severity Level</span>
+                                        <strong class="tile-val neutral" id="tile-severity">NONE</strong>
+                                        <small class="derived-tag">(Derived)</small>
+                                    </div>
+                                    <div class="metric-tile quality-gauge-tile">
+                                        <span class="tile-label">Quality Score</span>
+                                        <div class="quality-score-ring">
+                                            <strong class="tile-val" id="tile-quality-score">100<small>/100</small></strong>
+                                        </div>
+                                        <small class="derived-tag">(Derived)</small>
+                                    </div>
+                                </div>
+
+                                <!-- Detected Defects Table -->
+                                <div class="summary-section">
+                                    <div class="section-label-bar">
+                                        <span>DETECTED DEFECTS</span>
+                                        <span class="counter-badge" id="defects-table-count">0</span>
+                                    </div>
+                                    <div class="defects-table-wrapper">
+                                        <table class="defects-table" id="defects-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Defect Type</th>
+                                                    <th>Location</th>
+                                                    <th>Area (%)</th>
+                                                    <th>Severity</th>
+                                                    <th>Confidence</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="defects-table-body">
+                                                <tr class="empty-row">
+                                                    <td colspan="5">No defects detected or inspection pending.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Recommendation Box -->
+                                <div class="summary-section">
+                                    <div class="section-label-bar">
+                                        <span>RECOMMENDATION</span>
+                                    </div>
+                                    <div class="recommendation-card neutral" id="recommendation-card">
+                                        <div class="rec-icon" id="rec-icon">
+                                            <i class="fa-solid fa-circle-info"></i>
+                                        </div>
+                                        <div class="rec-content">
+                                            <strong id="rec-title">Awaiting Specimen Execution</strong>
+                                            <p id="rec-desc">Load an inspection image and execute inference to generate actionable disposition instructions.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quality Analysis & Acceptance Threshold -->
+                                <div class="summary-section">
+                                    <div class="section-label-bar">
+                                        <span>QUALITY ANALYSIS</span>
+                                    </div>
+                                    <div class="quality-analysis-box">
+                                        <div class="qa-row">
+                                            <span>Current Quality Score</span>
+                                            <strong id="qa-current-score">100 / 100</strong>
+                                        </div>
+                                        <div class="quality-track-container">
+                                            <div class="quality-track">
+                                                <div class="quality-fill" id="qa-score-fill" style="width: 100%;"></div>
+                                                <div class="threshold-marker" title="Acceptance Threshold (90%)" style="left: 90%;">
+                                                    <span class="threshold-line"></span>
+                                                    <span class="threshold-tag">90% PASS</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="qa-improvement-row">
+                                            <span class="imp-label">Improvement Required</span>
+                                            <span class="imp-val" id="qa-improvement-val">0% (Meets acceptance threshold)</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- Bottom Telemetry Footer Bar (Matching Reference UI) -->
+                    <div class="inspection-telemetry-bar">
+                        <div class="telemetry-item">
+                            <span class="telem-label">Inspection ID</span>
+                            <strong class="telem-val font-mono" id="telem-inspection-id">INS-PENDING</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telem-label">Date & Time</span>
+                            <strong class="telem-val" id="telem-timestamp">&mdash;</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telem-label">Operator</span>
+                            <strong class="telem-val" id="telem-operator">Admin</strong>
+                        </div>
+                        <div class="telemetry-item">
+                            <span class="telem-label">Processing Time</span>
+                            <strong class="telem-val font-mono" id="telem-processing-time">&mdash;</strong>
+                        </div>
+                        <div class="telemetry-status-badge" id="telem-status-badge">
+                            <i class="fa-solid fa-circle-check"></i>
+                            <span id="telem-status-text">System Ready</span>
+                        </div>
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================================
+                     VIEW 2: DASHBOARD (INDUSTRIAL TELEMETRY & STATS)
+                     ========================================================= -->
+                <section class="view-panel" id="view-dashboard">
+
+                    <!-- Welcome Industrial Banner -->
+                    <div class="dashboard-hero-banner">
+                        <div class="hero-left">
+                            <span class="hero-eyebrow"><i class="fa-solid fa-satellite-dish"></i> REAL-TIME MANUFACTURING TELEMETRY</span>
+                            <h2 class="hero-title">Intelligent Quality Inspection Center</h2>
+                            <p class="hero-desc">Continuous multi-domain defect monitoring across PCB electronics, automotive assemblies, and wafer semiconductors.</p>
+                            <div class="hero-actions">
+                                <button type="button" class="btn-primary" onclick="navigateTo('inspection')">
+                                    <i class="fa-solid fa-microscope"></i> Start Inspection Workstation
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="navigateTo('history')">
+                                    <i class="fa-solid fa-clock-rotate-left"></i> View Audit History
+                                </button>
+                            </div>
+                        </div>
+                        <div class="hero-right">
+                            <div class="telemetry-radar-box">
+                                <div class="radar-scan"></div>
+                                <i class="fa-solid fa-eye radar-icon"></i>
+                                <span class="radar-text">ACTIVE INFERENCE ENGINE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5 KPI Stat Cards -->
+                    <div class="dashboard-stats-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon-box blue"><i class="fa-solid fa-layer-group"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-label">Total Inspections</span>
+                                <strong class="kpi-value font-mono" id="dash-total-inspections">0</strong>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon-box green"><i class="fa-solid fa-circle-check"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-label">Passed Units</span>
+                                <strong class="kpi-value font-mono text-success" id="dash-passed-inspections">0</strong>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon-box red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-label">Defective Units</span>
+                                <strong class="kpi-value font-mono text-danger" id="dash-failed-inspections">0</strong>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon-box amber"><i class="fa-solid fa-bug"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-label">Defects Identified</span>
+                                <strong class="kpi-value font-mono text-warning" id="dash-defects-found">0</strong>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon-box purple"><i class="fa-solid fa-bullseye"></i></div>
+                            <div class="kpi-data">
+                                <span class="kpi-label">Average Confidence</span>
+                                <strong class="kpi-value font-mono" id="dash-avg-confidence">0.0%</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dual Industrial Panels (Conveyor HUD + Charts - Reference Image 2) -->
+                    <div class="dashboard-grid-dual">
+                        
+                        <!-- Left Panel: Industrial Telemetry Simulation -->
+                        <div class="panel dash-conveyor-panel">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">OPTICAL FEED</span>
+                                    <h3 class="panel-title">Active Inspection Line View</h3>
+                                </div>
+                                <span class="live-pill"><span class="pulse-green"></span> LIVE OPTICAL STREAM</span>
+                            </div>
+                            <div class="conveyor-viewport">
+                                <canvas id="canvas-conveyor-feed" class="conveyor-canvas"></canvas>
+                                <div class="conveyor-hud-telemetry">
+                                    <span>CONVEYOR SPEED: 1.4 m/s</span>
+                                    <span>LIGHTING: 5500K STROBE</span>
+                                    <span>DEFECT THRESHOLD: MEDIUM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Defect Classification Breakdown -->
+                        <div class="panel dash-chart-panel">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">DISTRIBUTION</span>
+                                    <h3 class="panel-title">Defect Classification</h3>
+                                </div>
+                            </div>
+                            <div class="defect-chart-container">
+                                <div class="chart-canvas-wrap">
+                                    <canvas id="canvas-defect-pie" width="180" height="180"></canvas>
+                                </div>
+                                <div class="chart-legend-list" id="defect-pie-legend">
+                                    <span class="empty-legend">No inspection defects recorded yet.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Recent Inspections Table -->
+                    <div class="panel dash-recent-panel">
+                        <div class="panel-header">
+                            <div class="header-titles">
+                                <span class="panel-eyebrow">AUDIT LOG</span>
+                                <h3 class="panel-title">Recent Inspection Records</h3>
+                            </div>
+                            <button type="button" class="btn-text" onclick="navigateTo('history')">
+                                View Full History <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="industrial-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Filename</th>
+                                        <th>Domain</th>
+                                        <th>Status</th>
+                                        <th>Defects</th>
+                                        <th>Confidence</th>
+                                        <th>Timestamp</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dash-recent-tbody">
+                                    <tr class="empty-row">
+                                        <td colspan="8">No inspection history found. Run a new inspection to populate.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+
+
+                <!-- =========================================================
+                     VIEW 3: HISTORY (SEARCHABLE & FILTERABLE AUDIT ARCHIVE)
+                     ========================================================= -->
+                <section class="view-panel" id="view-history">
+                    <div class="panel history-container-panel">
+                        <div class="panel-header">
+                            <div class="header-titles">
+                                <span class="panel-eyebrow">DATABASE ARCHIVE</span>
+                                <h3 class="panel-title">Inspection Records & QA Verifications</h3>
+                            </div>
+                            <div class="history-controls">
+                                <div class="search-input-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="history-search-input" placeholder="Search by filename or ID..." oninput="filterHistory()">
+                                </div>
+                                <select id="history-domain-filter" class="custom-select" onchange="filterHistory()">
+                                    <option value="ALL">All Domains</option>
+                                    <option value="PCB / Electronics">PCB / Electronics</option>
+                                    <option value="Automotive">Automotive Parts</option>
+                                    <option value="Semiconductor / Wafer">Semiconductor / Wafer</option>
+                                </select>
+                                <select id="history-status-filter" class="custom-select" onchange="filterHistory()">
+                                    <option value="ALL">All Statuses</option>
+                                    <option value="PASS">PASS Only</option>
+                                    <option value="FAIL">FAIL Only</option>
+                                </select>
+                                <button type="button" class="btn-icon" title="Refresh" onclick="loadHistoryData()">
+                                    <i class="fa-solid fa-rotate"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="industrial-table" id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Record ID</th>
+                                        <th>Filename</th>
+                                        <th>Domain</th>
+                                        <th>Status</th>
+                                        <th>Inspection Type</th>
+                                        <th>Defects</th>
+                                        <th>Confidence</th>
+                                        <th>Recorded At (UTC)</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <tr class="empty-row">
+                                        <td colspan="9"><i class="fa-solid fa-spinner fa-spin"></i> Loading inspection history...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+
+                <!-- =========================================================
+                     VIEW 4: ANALYTICS (TELEMETRY CHARTS & TRENDS)
+                     ========================================================= -->
+                <section class="view-panel" id="view-analytics">
+                    <div class="analytics-dashboard-grid">
+                        
+                        <!-- Chart 1: Pass vs Fail Ratio -->
+                        <div class="panel chart-card">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">QUALITY METRIC</span>
+                                    <h3 class="panel-title">Pass vs Fail Disposition</h3>
+                                </div>
+                            </div>
+                            <div class="chart-viewport">
+                                <canvas id="canvas-analytics-passfail" width="300" height="220"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Domain Distribution -->
+                        <div class="panel chart-card">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">VOLUME SPLIT</span>
+                                    <h3 class="panel-title">Inspections by Domain</h3>
+                                </div>
+                            </div>
+                            <div class="chart-viewport">
+                                <canvas id="canvas-analytics-domains" width="300" height="220"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: Defect Frequency by Class -->
+                        <div class="panel chart-card full-width">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">DEFECT TAXONOMY</span>
+                                    <h3 class="panel-title">Defect Frequency Across Inspected Lots</h3>
+                                </div>
+                            </div>
+                            <div class="chart-viewport wide">
+                                <canvas id="canvas-analytics-defects-bar" width="600" height="240"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+                <!-- =========================================================
+                     VIEW 5: MODEL PERFORMANCE & ARCHITECTURE
+                     ========================================================= -->
+                <section class="view-panel" id="view-performance">
+                    
+                    <div class="performance-hero">
+                        <div class="hero-header">
+                            <span class="panel-eyebrow">NEURAL ARSENAL</span>
+                            <h2 class="panel-title">Production Computer Vision Models</h2>
+                            <p>INSPECTRA deploys dedicated neural architectures tailored to distinct microscopic and macroscopic inspection physical constraints.</p>
+                        </div>
+                        <div class="model-engine-status-pill">
+                            <span class="pulse-green"></span>
+                            <span>BACKEND INFERENCE SERVER ACTIVE</span>
+                        </div>
+                    </div>
+
+                    <div class="models-grid">
+
+                        <!-- Model 1: PCB / Electronics -->
+                        <div class="panel model-card">
+                            <div class="model-card-header">
+                                <div class="model-icon-box blue"><i class="fa-solid fa-microchip"></i></div>
+                                <div>
+                                    <h3 class="model-name">PCB / Electronics</h3>
+                                    <span class="model-weights font-mono">models/pcb_best.pt</span>
+                                </div>
+                                <span class="model-badge">Object Detection</span>
+                            </div>
+                            <div class="model-spec-list">
+                                <div class="spec-row">
+                                    <span class="spec-k">Architecture</span>
+                                    <strong class="spec-v">Ultralytics YOLOv8 Nano</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Task Type</span>
+                                    <strong class="spec-v">Real-time Bounding Box Detection</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Classes (6)</span>
+                                    <div class="class-tags-wrap">
+                                        <span class="class-tag">Mouse_bite</span>
+                                        <span class="class-tag">Spur</span>
+                                        <span class="class-tag">Open_circuit</span>
+                                        <span class="class-tag">Short</span>
+                                        <span class="class-tag">Missing_hole</span>
+                                        <span class="class-tag">Spurious_copper</span>
+                                    </div>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Spatial Output</span>
+                                    <strong class="spec-v">Area % &bull; Centroid (X,Y) &bull; Pixels</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model 2: Automotive Parts -->
+                        <div class="panel model-card">
+                            <div class="model-card-header">
+                                <div class="model-icon-box green"><i class="fa-solid fa-car"></i></div>
+                                <div>
+                                    <h3 class="model-name">Automotive Parts</h3>
+                                    <span class="model-weights font-mono">models/automotive_best_yolo.pt</span>
+                                </div>
+                                <span class="model-badge">Object Detection</span>
+                            </div>
+                            <div class="model-spec-list">
+                                <div class="spec-row">
+                                    <span class="spec-k">Architecture</span>
+                                    <strong class="spec-v">Ultralytics YOLOv8 Nano</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Task Type</span>
+                                    <strong class="spec-v">Macroscopic Defect Localization</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Classes (6)</span>
+                                    <div class="class-tags-wrap">
+                                        <span class="class-tag">dent</span>
+                                        <span class="class-tag">scratch</span>
+                                        <span class="class-tag">crack</span>
+                                        <span class="class-tag">glass shatter</span>
+                                        <span class="class-tag">lamp broken</span>
+                                        <span class="class-tag">tire flat</span>
+                                    </div>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Spatial Output</span>
+                                    <strong class="spec-v">Area % &bull; Normalized Bounding Rects</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Model 3: Semiconductor / Wafer -->
+                        <div class="panel model-card">
+                            <div class="model-card-header">
+                                <div class="model-icon-box purple"><i class="fa-solid fa-circle-nodes"></i></div>
+                                <div>
+                                    <h3 class="model-name">Semiconductor / Wafer</h3>
+                                    <span class="model-weights font-mono">models/semiconductor_best.pth</span>
+                                </div>
+                                <span class="model-badge">Classification + Grad-CAM</span>
+                            </div>
+                            <div class="model-spec-list">
+                                <div class="spec-row">
+                                    <span class="spec-k">Architecture</span>
+                                    <strong class="spec-v">ResNet18 Deep Residual Network</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Validated Accuracy</span>
+                                    <strong class="spec-v text-success">94.81% Evaluation Benchmark</strong>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Classes (9)</span>
+                                    <div class="class-tags-wrap">
+                                        <span class="class-tag">Center</span>
+                                        <span class="class-tag">Donut</span>
+                                        <span class="class-tag">Edge-Loc</span>
+                                        <span class="class-tag">Edge-Ring</span>
+                                        <span class="class-tag">Loc</span>
+                                        <span class="class-tag">Near-full</span>
+                                        <span class="class-tag">Random</span>
+                                        <span class="class-tag">Scratch</span>
+                                        <span class="class-tag pass">none</span>
+                                    </div>
+                                </div>
+                                <div class="spec-row">
+                                    <span class="spec-k">Explainability</span>
+                                    <strong class="spec-v">Grad-CAM Spatial Layer4 Activation (56x56)</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+
+                <!-- =========================================================
+                     VIEW 6: SETTINGS & SYSTEM CONFIGURATION
+                     ========================================================= -->
+                <section class="view-panel" id="view-settings">
+                    <div class="settings-page-layout">
+                        
+                        <!-- Operator Profile Card -->
+                        <div class="panel settings-card">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">IDENTITY</span>
+                                    <h3 class="panel-title">Operator Profile</h3>
+                                </div>
+                            </div>
+                            <div class="profile-details-grid">
+                                <div class="avatar-large" id="settings-avatar">A</div>
+                                <div class="profile-text-fields">
+                                    <div class="field-item">
+                                        <label>Operator Name</label>
+                                        <strong id="settings-name">Admin</strong>
+                                    </div>
+                                    <div class="field-item">
+                                        <label>Account Email</label>
+                                        <span id="settings-email" class="font-mono">admin@inspectra.ai</span>
+                                    </div>
+                                    <div class="field-item">
+                                        <label>Role Clearance</label>
+                                        <span class="role-badge">Lead Quality Assurance Engineer</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Backend API Endpoint Configuration -->
+                        <div class="panel settings-card">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">INTEGRATION</span>
+                                    <h3 class="panel-title">Backend API Gateway</h3>
+                                </div>
+                            </div>
+                            <div class="api-config-content">
+                                <p class="setting-desc">Connects frontend to the FastAPI machine learning inference backend.</p>
+                                <div class="input-group">
+                                    <label for="input-api-url">API Base URL</label>
+                                    <div class="api-url-input-row">
+                                        <input type="text" id="input-api-url" class="font-mono" value="http://127.0.0.1:8000">
+                                        <button type="button" class="btn-secondary" onclick="testApiConnection()">
+                                            <i class="fa-solid fa-plug"></i> Test Connection
+                                        </button>
+                                        <button type="button" class="btn-primary" onclick="saveApiUrl()">
+                                            <i class="fa-solid fa-floppy-disk"></i> Save
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="connection-status-box" id="connection-status-box">
+                                    <span id="connection-status-text"><i class="fa-solid fa-circle-check text-success"></i> Default gateway: http://127.0.0.1:8000</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Workstation Preferences -->
+                        <div class="panel settings-card">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow">DISPLAY & WORKSTATION</span>
+                                    <h3 class="panel-title">Interface Preferences</h3>
+                                </div>
+                            </div>
+                            <div class="preferences-list">
+                                <label class="preference-row">
+                                    <div>
+                                        <strong>High-Contrast Bounding Box Reticles</strong>
+                                        <p>Enforces maximum visibility borders over complex component textures</p>
+                                    </div>
+                                    <input type="checkbox" id="pref-high-contrast" checked>
+                                </label>
+                                <label class="preference-row">
+                                    <div>
+                                        <strong>Smooth Telemetry Motion Animation</strong>
+                                        <p>Enables kinetic scanning HUD and live conveyor graphics</p>
+                                    </div>
+                                    <input type="checkbox" id="pref-animations" checked>
+                                </label>
+                                <label class="preference-row">
+                                    <div>
+                                        <strong>Auto-Show Heatmap on Semiconductor Inferences</strong>
+                                        <p>Automatically expands the Grad-CAM thermal layer upon wafer classification</p>
+                                    </div>
+                                    <input type="checkbox" id="pref-auto-heatmap" checked>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- System Sign Out -->
+                        <div class="panel settings-card danger-zone">
+                            <div class="panel-header">
+                                <div class="header-titles">
+                                    <span class="panel-eyebrow text-danger">SESSION TERMINATION</span>
+                                    <h3 class="panel-title">Operator Sign Out</h3>
+                                </div>
+                            </div>
+                            <p class="setting-desc">Clears local access token, active specimen cached in memory, and returns to the authentication portal.</p>
+                            <button type="button" class="btn-danger" onclick="logout()">
+                                <i class="fa-solid fa-right-from-bracket"></i> Disconnect Session
+                            </button>
+                        </div>
+
+                    </div>
+                </section>
+
+            </div>
+
+        </main>
+
+    </div>
+
+
+    <!-- =========================================================
+         3. INSPECTION DETAIL MODAL (FOR AUDIT HISTORY VIEWS)
+         ========================================================= -->
+    <div class="modal-backdrop hidden" id="modal-inspection-detail">
+        <div class="modal-dialog large-modal">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="panel-eyebrow">RECORD VIEWER</span>
+                    <h3 class="modal-title" id="modal-detail-title">Inspection Record</h3>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeDetailModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modal-detail-body">
+                <!-- Dynamically injected inspection details -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeDetailModal()">Close Record</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- =========================================================
+         4. PRINTABLE QUALITY AUDIT REPORT MODAL (PDF EXPORT)
+         ========================================================= -->
+    <div class="modal-backdrop hidden" id="modal-report-export">
+        <div class="modal-dialog print-modal">
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <span class="panel-eyebrow">QUALITY CERTIFICATE</span>
+                    <h3 class="modal-title">Official Inspection Certificate</h3>
+                </div>
+                <div class="print-modal-actions">
+                    <button type="button" class="btn-primary" onclick="window.print()">
+                        <i class="fa-solid fa-print"></i> Print / Save PDF
+                    </button>
+                    <button type="button" class="modal-close-btn" onclick="closeReportModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body report-printable-area" id="report-printable-area">
+                <!-- Printable Certificate Content -->
+                <div class="cert-header">
+                    <div class="cert-brand">
+                        <i class="fa-solid fa-eye cert-logo"></i>
+                        <div>
+                            <h1>INSPECTRA QUALITY AUDIT REPORT</h1>
+                            <span>INDUSTRIAL COMPUTER VISION ASSURANCE &bull; ISO 9001:2015 COMPLIANT</span>
+                        </div>
+                    </div>
+                    <div class="cert-stamp" id="cert-stamp-badge">
+                        <span id="cert-stamp-text">DEFECTIVE</span>
+                    </div>
+                </div>
+
+                <div class="cert-meta-grid">
+                    <div>
+                        <span class="meta-label">Inspection Reference ID:</span>
+                        <strong id="cert-id" class="font-mono">INS-2025-05-24-00125</strong>
+                    </div>
+                    <div>
+                        <span class="meta-label">Timestamp:</span>
+                        <strong id="cert-timestamp">24 May 2025, 04:35:22 PM</strong>
+                    </div>
+                    <div>
+                        <span class="meta-label">Domain Tested:</span>
+                        <strong id="cert-domain">PCB / Electronics</strong>
+                    </div>
+                    <div>
+                        <span class="meta-label">Operator:</span>
+                        <strong id="cert-operator">Admin</strong>
+                    </div>
+                </div>
+
+                <div class="cert-image-preview">
+                    <img id="cert-preview-img" src="" alt="Specimen Preview">
+                </div>
+
+                <div class="cert-stats-row">
+                    <div class="cert-stat">
+                        <span>Model Confidence</span>
+                        <strong id="cert-confidence">94.2%</strong>
+                    </div>
+                    <div class="cert-stat">
+                        <span>Defects Identified</span>
+                        <strong id="cert-defects">3</strong>
+                    </div>
+                    <div class="cert-stat">
+                        <span>Total Defect Area</span>
+                        <strong id="cert-area">8.74%</strong>
+                    </div>
+                    <div class="cert-stat">
+                        <span>Quality Score</span>
+                        <strong id="cert-score">64 / 100</strong>
+                    </div>
+                </div>
+
+                <div class="cert-defects-section">
+                    <h4>Detected Defect Log</h4>
+                    <table class="cert-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Defect Class</th>
+                                <th>Location</th>
+                                <th>Area %</th>
+                                <th>Severity</th>
+                                <th>Confidence</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cert-defects-body">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="cert-recommendation-box" id="cert-recommendation-box">
+                    <strong>Official Disposition Recommendation:</strong>
+                    <p id="cert-recommendation-text">Manual Inspection Required: High severity defects detected. Product may fail functional test.</p>
+                </div>
+
+                <div class="cert-footer">
+                    <div class="cert-sign">
+                        <div class="sign-line"></div>
+                        <span>Certified Quality Engineer Signature</span>
+                    </div>
+                    <div class="cert-qr">
+                        <i class="fa-solid fa-qrcode"></i>
+                        <span>VALIDATED BY INSPECTRA AI ENGINE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
